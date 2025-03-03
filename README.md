@@ -1,7 +1,10 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
+.env файл должен содержать следующее
+```
+REACT_APP_KC=
+REACT_APP_REALM=
+REACT_APP_CLIENT=
+```
 ## Available Scripts
 
 In the project directory, you can run:
