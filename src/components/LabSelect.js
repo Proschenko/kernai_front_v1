@@ -11,7 +11,7 @@ const LabSelect = ({ onChange }) => {
       setLoading(true);
       try {
         const response = await api.get("/labs"); // Исправленный вызов API
-        setLabs(response.data.map(lab => ({ value: lab.id, label: lab.labname })));
+        setLabs(response.data.map(lab => ({ value: lab.id, label: lab.lab_name })));
       } catch (error) {
         notification.error({
           message: "Ошибка загрузки",
