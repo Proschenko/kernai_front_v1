@@ -1,37 +1,34 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import UserService from './UserService';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import UserService from "./UserService";
 
-// Создаем контекст для аутентификации
 const AuthContext = createContext();
 
-// Хук для использования контекста
-export const useAuth = () => {
-  
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
-// Компонент для обертки приложения и предоставления состояния аутентификации
 export const AuthProvider = ({ children }) => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const [authenticated, setAuthenticated] = useState(false);
+    const [username, setUsername] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [mail, setMail] = useState (null)
+    useEffect(() => {
+        if (UserService.isLoggedIn()) {
+            setAuthenticated(true);
+            setUsername(UserService.getUsername()); // Получаем имя пользователя
+            setMail(UserService.getMail());
+        } else {
+            setAuthenticated(false);
+            setUsername(null);
+        }
+        setLoading(false);
+    }, []);
 
-  useEffect(() => {
-    // Проверяем, что Keycloak инициализирован и обновляем состояние аутентификации
-    if (UserService.isLoggedIn()) {
-      setAuthenticated(true);
-    } else {
-      setAuthenticated(false);
+    if (loading) {
+        return <div>Загрузка...</div>;
     }
-    setLoading(false);
-  }, []);
 
-  if (loading) {
-    return <div>Загрузка...</div>;
-  }
-
-  return (
-    <AuthContext.Provider value={{ authenticated, login: UserService.doLogin, logout: UserService.doLogout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    return (
+        <AuthContext.Provider value={{ authenticated, username, mail, login: UserService.doLogin, logout: UserService.doLogout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };

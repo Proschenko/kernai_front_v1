@@ -48,13 +48,8 @@ const KernDetailsModal = ({ id, onClose }) => {
     }
   };
 
-  const addComment = async (newCommentText) => {
-    try {
-      await api.post(`/kern/${id}/comments`, { comment_text: newCommentText });
-      fetchComments(id); // Перезагрузить комментарии
-    } catch (error) {
-      console.error("Ошибка при добавлении комментария:", error);
-    }
+  const addComment = (newComment) => {
+    setComments([newComment, ...comments]); // Добавляем новый комментарий в начало списка
   };
 
   const kernColumns = [
@@ -101,9 +96,8 @@ const KernDetailsModal = ({ id, onClose }) => {
           {data.length > 0 && (
             <>
               <p><strong>Код Керна:</strong> {data[0].kern_code}</p>
-              <p><strong>Последняя лаборатория:</strong> {data[data.length - 1].lab_name}</p>
-              <p><strong>Дата первого повреждения:</strong> {getFirstDamageDate()}</p>
-            </>
+              <p><strong>Последняя лаборатория:</strong> {data[data.length - 1].lab_name}</p><p><strong>Дата первого повреждения:</strong> {getFirstDamageDate()}</p>
+              </>
           )}
           
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -158,6 +152,7 @@ const KernDetailsModal = ({ id, onClose }) => {
         onAddComment={addComment}
         kernCode={kernCode}
         labName={labName}
+        kernId={id}
       />
     </Modal>
   );

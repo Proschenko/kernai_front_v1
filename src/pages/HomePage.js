@@ -41,7 +41,7 @@ const HomePage = () => {
       const formData = new FormData();
       formData.append("file", uploadedFile);
       console.log("Файл:", formData);
-      const result = await api.post("/analyze_image", formData);
+      const result = await api.post("/analyze_img", formData);
       console.log("Результат:", result.data);
       setProgress(100);
 

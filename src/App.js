@@ -13,9 +13,9 @@ const { Header, Content } = Layout;
 
 const App = () => {
   // eslint-disable-next-line
-  const { authenticated, login, logout, keycloak } = useAuth();  // Получаем состояние аутентификации и методы
+  const { authenticated, login, logout, keycloak, mail } = useAuth();  // Получаем состояние аутентификации и методы
 
-
+  
   if (!authenticated) {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
