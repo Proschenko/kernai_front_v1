@@ -39,6 +39,15 @@ const updateToken = (successCallback) =>
 const getUsername = () => _kc.tokenParsed?.preferred_username;
 const getMail = () => _kc.tokenParsed?.email;
 
+// Получение всех ролей пользователя
+const getUserRoles = () => {
+    if (_kc.tokenParsed && _kc.tokenParsed.resource_access) {
+        const roles = _kc.tokenParsed.resource_access[process.env.REACT_APP_CLIENT]?.roles || [];
+        return roles;
+    }
+    return [];
+};
+
 const hasRole = (role) => _kc.hasResourceRole(role, process.env.EAV_CLIENT);
 
 const UserService = {
@@ -51,6 +60,7 @@ const UserService = {
     getUsername,
     getMail,
     hasRole,
+    getUserRoles
 };
 
 export default UserService;

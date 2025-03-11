@@ -9,12 +9,14 @@ export const AuthProvider = ({ children }) => {
     const [authenticated, setAuthenticated] = useState(false);
     const [username, setUsername] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [mail, setMail] = useState (null)
+    const [mail, setMail] = useState (null);
+    const [roles, setRole] = useState (null);
     useEffect(() => {
         if (UserService.isLoggedIn()) {
             setAuthenticated(true);
             setUsername(UserService.getUsername()); // Получаем имя пользователя
             setMail(UserService.getMail());
+            setRole(UserService.getUserRoles());
         } else {
             setAuthenticated(false);
             setUsername(null);
@@ -27,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ authenticated, username, mail, login: UserService.doLogin, logout: UserService.doLogout }}>
+        <AuthContext.Provider value={{ authenticated, username, mail, roles, login: UserService.doLogin, logout: UserService.doLogout }}>
             {children}
         </AuthContext.Provider>
     );
