@@ -37,6 +37,9 @@ const HomePage = () => {
     setModalVisible(true);
     showModal("Загрузка файла...", 20);
 
+    localStorage.removeItem("validationPageData");
+    sessionStorage.removeItem("imageCache");
+
     try {
       // 1. Загружаем изображение
       const formData = new FormData();
@@ -49,7 +52,7 @@ const HomePage = () => {
 
       // 2. Запускаем анализ
       const analyzeResponse = await api.post("/analyze_img", {
-        party_id,
+        party_id: party_id,
         image_path: file_path,
         codes: inputCodes,
         lab_id: selectedLab,
