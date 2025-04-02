@@ -1,40 +1,60 @@
 import React, { useState, useEffect, useCallback, useReducer } from "react";
-import { Table, Tag, Button, Modal, Image, Input, message, notification, Checkbox, Popconfirm } from "antd";
+import {  Table,  Tag,  Button,  Modal,  Image,  Input,  message,  notification,  Checkbox,  Popconfirm,  Select,
+} from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 import api from "../utils/api";
 
-const placeholderImage = "https://via.placeholder.com/100";
+const placeholderImage = null;
 const LOCAL_STORAGE_KEY = "validationPageData";
 const IMAGE_CACHE_KEY = "imageCache";
 
 const ValidationPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const { state } = location || {};
   const { result } = state || {};
+  const {party_id, lab} = state || {};
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState({ rotated: "", cropped: "" });
   const [data, setData] = useState([]);
   const [imageCache, setImageCache] = useState({});
-  const [loading, setLoading] = useState(false);
   const [disablePopconfirm, setDisablePopconfirm] = useState(false);
-
+  // Состояние для списка видов повреждений, полученных из API
+  const [damageTypes, setDamageTypes] = useState([]);
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
+  // Запрос списка видов повреждений из API
+  useEffect(() => {
+    const fetchDamageTypes = async () => {
+      try {
+        const res = await api.get("/damages");
+        setDamageTypes(res.data); // ожидается, что res.data — массив объектов с полями id и damage_type
+      } catch (error) {
+        console.error("Ошибка при загрузке видов повреждений:", error);
+      }
+    };
+
+    fetchDamageTypes();
+  }, []);
 
   // Функция для плавного скролла к элементу
   const smoothScrollTo = (element) => {
     const targetPosition = element.getBoundingClientRect().top + window.pageYOffset;
     const startPosition = window.pageYOffset;
     const distance = targetPosition - startPosition;
-    const duration = 500; // длительность анимации в мс
+    const duration = 500;
     let startTime = null;
 
     const easeInOutQuad = (t, b, c, d) => {
       t /= d / 2;
-      if (t < 1) return c / 2 * t * t + b;
+      if (t < 1) return (c / 2) * t * t + b;
       t--;
-      return -c / 2 * (t * (t - 2) - 1) + b;
+      return (-c / 2) * (t * (t - 2) - 1) + b;
     };
 
     const animation = (currentTime) => {
@@ -62,43 +82,39 @@ const ValidationPage = () => {
   }, []);
 
   // Предварительная загрузка изображений
-  const prefetchImages = useCallback(async (processingResults) => {
-    const newCache = {};
-    for (const item of processingResults) {
-      newCache[item.rotated_path] = await fetchImage(item.rotated_path);
-      newCache[item.cropped_path] = await fetchImage(item.cropped_path);
-    }
-    setImageCache(newCache);
-    sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(processingResults.map((i) => i.rotated_path)));
-    forceUpdate();
-  }, [fetchImage]);
+  const prefetchImages = useCallback(
+    async (processingResults) => {
+      const newCache = {};
+      for (const item of processingResults) {
+        newCache[item.rotated_path] = await fetchImage(item.rotated_path);
+        newCache[item.cropped_path] = await fetchImage(item.cropped_path);
+      }
+      setImageCache(newCache);
+      sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(processingResults.map((i) => i.rotated_path)));
+      forceUpdate();
+    },
+    [fetchImage]
+  );
 
-  // Загружаем данные из localStorage и sessionStorage при монтировании
+  // Загрузка данных из localStorage или результата обработки
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-    const savedCachePaths = JSON.parse(sessionStorage.getItem(IMAGE_CACHE_KEY) || "[]");
-
     if (savedData) {
       const parsedData = JSON.parse(savedData);
-      setData(parsedData.map(item => ({ ...item, status: false })));
-      prefetchImages(parsedData);
+      // Добавляем поле damage_type, если его ещё нет
+      const dataWithDamage = parsedData.map((item) => ({ ...item, status: false, damage_type: item.damage_type || "" }));
+      setData(dataWithDamage);
+      prefetchImages(dataWithDamage);
     } else if (result?.processing_results) {
-      const processedResults = result.processing_results.map(item => ({ ...item, status: false }));
+      const processedResults = result.processing_results.map((item) => ({
+        ...item,
+        status: false,
+        damage_type: "",
+      }));
       setData(processedResults);
       prefetchImages(processedResults);
     }
-
-    if (savedCachePaths.length > 0) {
-      (async () => {
-        const newCache = {};
-        for (const path of savedCachePaths) {
-          newCache[path] = await fetchImage(path);
-        }
-        setImageCache(newCache);
-        forceUpdate();
-      })();
-    }
-  }, [result, prefetchImages, fetchImage]);
+  }, [result, prefetchImages]);
 
   // Сохраняем данные в localStorage при изменении data
   useEffect(() => {
@@ -134,23 +150,55 @@ const ValidationPage = () => {
   };
 
   // Кнопка загрузки данных с плавной прокруткой к первой неподтвержденной записи
-  const handleLoadData = () => {
-    const unconfirmedRow = data.find((row) => row.status !== true);
-    if (unconfirmedRow) {
-      notification.warning({
-        message: "Заполните все записи!",
-        description: "Пожалуйста, подтвердите все строки, прежде чем загружать данные.",
-      });
-      const rowElement = document.getElementById(unconfirmedRow.rotated_path);
-      if (rowElement) {
-        smoothScrollTo(rowElement);
-      }
-      return;
+  const handleLoadData = async () => {
+  // Проверяем, что все строки подтверждены
+  const unconfirmedRow = data.find((row) => row.status !== true);
+  if (unconfirmedRow) {
+    notification.warning({
+      message: "Заполните все записи!",
+      description: "Пожалуйста, подтвердите все строки, прежде чем загружать данные.",
+    });
+    const rowElement = document.getElementById(unconfirmedRow.rotated_path);
+    if (rowElement) {
+      smoothScrollTo(rowElement);
     }
-    message.success("Данные загружены!");
-  };
+    return;
+  }
 
-  // Подтвердить или отменить подтверждение записи
+  // Формируем payload для запроса вставки данных
+  console.log("data:")
+  console.log(data)
+  console.log("result")
+  console.log(result)
+  const payload = {
+    id_party: party_id, // идентификатор для kern_party
+    kern_party_statements: result?.codes || [], // список кодов для kern_party_statements; может быть пустым
+    insert_date: result?.insert_date, // общий insert_date для всех записей
+    validation_date: new Date().toISOString().slice(0, 19).replace("T", " "),
+    lab_id: lab,
+    input_type: result?.input_type,
+    rows: data.map((item) => ({
+      damage_id: damageTypes.find(d => d.damage_type === item.damage_type)?.id || null,
+      confidence_model: item.model_confidence,   
+      code_model: item.predicted_text,             
+      code_algorithm: item.algorithm_text, 
+      kern_code: item.kern_code, //здесь все хорошо
+    })),
+  };
+  console.log("payload")
+  console.log(payload)
+
+  try {
+    const response = await api.post("/insert_data", payload);
+    console.log(response)
+    message.success("Данные успешно загружены");
+    //navigate('/monitoring');
+  } catch (error) {
+    message.error("Ошибка загрузки данных");
+  }
+};
+
+  // Подтверждение записи
   const handleConfirm = (index) => {
     const newData = [...data];
     newData[index].status = !newData[index].status;
@@ -165,7 +213,7 @@ const ValidationPage = () => {
     message.success("Запись удалена!");
   };
 
-  // Плавное перемещение к первой неподтвержденной записи или уведомление, если все подтверждены
+  // Прокрутка к первой неподтвержденной записи
   const handleShowUnconfirmed = () => {
     const unconfirmedRow = data.find((row) => !row.status);
     if (unconfirmedRow) {
@@ -178,7 +226,7 @@ const ValidationPage = () => {
     }
   };
 
-  const confirmedCount = data.filter(item => item.status).length;
+  const confirmedCount = data.filter((item) => item.status).length;
   const unconfirmedCount = data.length - confirmedCount;
 
   const columns = [
@@ -224,6 +272,31 @@ const ValidationPage = () => {
       ),
     },
     {
+      title: "Вид повреждения",
+      dataIndex: "damage_type",
+      key: "damage_type",
+      render: (text, record, index) => (
+        <Select
+          value={record.damage_type || undefined}
+          disabled={record.status}
+          onChange={(value) => {
+            const newData = [...data];
+            newData[index].damage_type = value;
+            setData(newData);
+          }}
+          allowClear
+          style={{ width: 160 }}
+          placeholder="Выберите"
+        >
+          {damageTypes.map((dt) => (
+            <Select.Option key={dt.id} value={dt.damage_type}>
+              {dt.damage_type}
+            </Select.Option>
+          ))}
+        </Select>
+      ),
+    },
+    {
       title: "Статус",
       dataIndex: "status",
       key: "status",
@@ -262,30 +335,27 @@ const ValidationPage = () => {
 
   return (
     <div>
-      <div style={{display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
         <h1>Верификация</h1>
       </div>
-      
-      <div style={{display: "flex", justifyContent: "space-between"}}>
+
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div style={{ marginBottom: "16px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
           <Button type="primary" onClick={handleLoadData}>
-            Загрузить данные
+            Отправить данные
           </Button>
           <Button onClick={handleShowUnconfirmed}>Показать неподтвержденные</Button>
-          
         </div>
         <div></div>
         <div style={{ marginBottom: "16px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-        <Checkbox onChange={(e) => setDisablePopconfirm(e.target.checked)}>
-          Отключить подтверждение удаления
-        </Checkbox>
-        <Button  onClick={handleClearTable} danger>
-          Очистить таблицу
-        </Button>
+          <Checkbox onChange={(e) => setDisablePopconfirm(e.target.checked)}>
+            Отключить подтверждение удаления
+          </Checkbox>
+          <Button onClick={handleClearTable} danger>
+            Очистить таблицу
+          </Button>
+        </div>
       </div>
-
-      </div>
-
 
       <div style={{ marginBottom: "10px" }}>
         <Tag color="blue">Всего: {data.length}</Tag>

@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Layout, Menu, Avatar, Typography } from "antd";
-import { UserOutlined, HomeTwoTone, EditTwoTone, EyeTwoTone, MessageTwoTone } from "@ant-design/icons";
+import { UserOutlined, HomeOutlined, EditOutlined, EyeOutlined, MessageOutlined, CrownOutlined} from "@ant-design/icons";
 import logo from "../assets/images/логотип Новатэк.png";
 import { useAuth } from '../auth/AuthContext';  // Импортируем контекст
 
@@ -9,19 +9,25 @@ import { useAuth } from '../auth/AuthContext';  // Импортируем кон
 const { Sider } = Layout;
 const { Text } = Typography;
 
-const menuItems = [
-  { key: "/", icon: <HomeTwoTone />, label: "Главная", path: "/" },
-  { key: "/validation", icon: <EditTwoTone />, label: "Валидация", path: "/validation" },
-  { key: "/monitoring", icon: <EyeTwoTone />, label: "Мониторинг", path: "/monitoring" },
-  { key: "/guide", icon: <MessageTwoTone />, label: "Справка", path: "/guide" },
-];
+
 
 const Sidebar = () => {
   const {mail,username, roles} =  useAuth();
 
   const role = roles.length > 0 ? roles[0] : "Неизвестная роль";
   const location = useLocation(); // Получаем текущий путь
+  const isAdmin = roles?.includes("admin");
 
+
+  const menuItems = [
+    isAdmin && { key: "/admin_panel", icon: <CrownOutlined />, label: "Админ-панель", path: "/admin_panel" },
+    { key: "/", icon: <HomeOutlined />, label: "Главная", path: "/" },
+    { key: "/validation", icon: <EditOutlined />, label: "Валидация", path: "/validation" },
+    { key: "/monitoring", icon: <EyeOutlined />, label: "Мониторинг", path: "/monitoring" },
+    { key: "/guide", icon: <MessageOutlined />, label: "Справка", path: "/guide" },
+  ].filter(Boolean); // Убираем `null`, если isAdmin = false
+
+  
   return (
     <Sider width={200} style={{ height: "100vh", position: "fixed", left: 0, top: 0, bottom: 0 }}>
       <div style={{ padding: "16px", textAlign: "center" }}>

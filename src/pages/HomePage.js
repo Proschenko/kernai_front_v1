@@ -92,8 +92,8 @@ const HomePage = () => {
       // 5. Редирект на валидацию
       setTimeout(() => {
         setModalVisible(false);
-        console.log("Передаваемые данные:", { lab: selectedLab, uploadType, codes: inputCodes, result });
-        navigate("/validation", { state: { lab: selectedLab, uploadType, codes: inputCodes, result } });
+        console.log("Передаваемые данные:", { lab: selectedLab, uploadType, codes: inputCodes, result, party_id: party_id });
+        navigate("/validation", { state: { lab: selectedLab, uploadType, codes: inputCodes, result, party_id: party_id } });
       }, 1000);
     } catch (error) {
       Modal.error({ title: "Ошибка", content: "Произошла ошибка при обработке запроса." });
