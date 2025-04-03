@@ -22,8 +22,8 @@ const Sidebar = () => {
   const menuItems = [
     isAdmin && { key: "/admin_panel", icon: <CrownOutlined />, label: "Админ-панель", path: "/admin_panel" },
     { key: "/", icon: <HomeOutlined />, label: "Главная", path: "/" },
-    { key: "/validation", icon: <EditOutlined />, label: "Валидация", path: "/validation" },
-    { key: "/monitoring", icon: <EyeOutlined />, label: "Мониторинг", path: "/monitoring" },
+    { key: "/verification", icon: <EditOutlined />, label: "Верификация", path: "/verification" },
+    { key: "/accounting", icon: <EyeOutlined />, label: "Учёт образцов", path: "/accounting" },
     { key: "/guide", icon: <MessageOutlined />, label: "Справка", path: "/guide" },
   ].filter(Boolean); // Убираем `null`, если isAdmin = false
 

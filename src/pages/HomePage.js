@@ -8,7 +8,7 @@ import CodeInput from "../components/CodeInput";
 import api from "../utils/api";
 
 const HomePage = () => {
-  const [uploadType, setUploadType] = useState("imgOnly");
+  const [uploadType, setUploadType] = useState("imgAndList");
   const [selectedLab, setSelectedLab] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [inputCodes, setInputCodes] = useState([]);
@@ -93,7 +93,7 @@ const HomePage = () => {
       setTimeout(() => {
         setModalVisible(false);
         console.log("Передаваемые данные:", { lab: selectedLab, uploadType, codes: inputCodes, result, party_id: party_id });
-        navigate("/validation", { state: { lab: selectedLab, uploadType, codes: inputCodes, result, party_id: party_id } });
+        navigate("/verification", { state: { lab: selectedLab, uploadType, codes: inputCodes, result, party_id: party_id } });
       }, 1000);
     } catch (error) {
       Modal.error({ title: "Ошибка", content: "Произошла ошибка при обработке запроса." });
@@ -106,8 +106,8 @@ const HomePage = () => {
     <div style={{ padding: 16 }}>
       <Radio.Group
         options={[
-          { label: "Только изображение", value: "imgOnly" },
           { label: "Изображение + Ведомость", value: "imgAndList" },
+          { label: "Только изображение", value: "imgOnly" },
         ]}
         value={uploadType}
         onChange={(e) => setUploadType(e.target.value)}

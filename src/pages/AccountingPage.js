@@ -7,7 +7,7 @@ import KernDetailsModal from "../components/KernDetailsModal"
 
 const { Option } = Select;
 
-const MonitoringPage = () => {
+const AccountingPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -147,4 +147,4 @@ const MonitoringPage = () => {
   );
 };
 
-export default MonitoringPage;
+export default AccountingPage;

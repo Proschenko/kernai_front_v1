@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import { Layout } from "antd";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
-import ValidationPage from "./pages/ValidationPage";
-import MonitoringPage from "./pages/MonitoringPage";
+import VerificationPage from "./pages/VerificationPage";
+import AccountingPage from "./pages/AccountingPage";
 import GuidePage from "./pages/GuidePage";
 import AdminPage from "./pages/AdminPage";
 import { useAuth } from "./auth/AuthContext";
@@ -16,10 +16,10 @@ const getPageTitle = (pathname) => {
   switch (pathname) {
     case "/":
       return "Главная";
-    case "/validation":
+    case "/verification":
       return "Верификация";
-    case "/monitoring":
-      return "Мониторинг";
+    case "/accounting":
+      return "Учет образцов керна";
     case "/guide":
       return "Руководство";
     case "/admin_panel":
@@ -76,8 +76,8 @@ const App = () => {
               {/* Скрытие маршрута для пользователей без роли admin1 */}
               {isAdmin && <Route path="/admin_panel" element={<AdminPage />} />}
               <Route path="/" element={<HomePage />} />
-              <Route path="/validation" element={<ValidationPage />} />
-              <Route path="/monitoring" element={<MonitoringPage />} />
+              <Route path="/verification" element={<VerificationPage />} />
+              <Route path="/accounting" element={<AccountingPage />} />
               <Route path="/guide" element={<GuidePage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

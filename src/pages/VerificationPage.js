@@ -11,7 +11,7 @@ const placeholderImage = null;
 const LOCAL_STORAGE_KEY = "validationPageData";
 const IMAGE_CACHE_KEY = "imageCache";
 
-const ValidationPage = () => {
+const VerificationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -192,7 +192,7 @@ const ValidationPage = () => {
     const response = await api.post("/insert_data", payload);
     console.log(response)
     message.success("Данные успешно загружены");
-    //navigate('/monitoring');
+    //navigate('/accounting');
   } catch (error) {
     message.error("Ошибка загрузки данных");
   }
@@ -375,4 +375,4 @@ const ValidationPage = () => {
   );
 };
 
-export default ValidationPage;
+export default VerificationPage;
