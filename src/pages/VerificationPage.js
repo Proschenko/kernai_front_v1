@@ -32,7 +32,7 @@ const VerificationPage = () => {
   useEffect(() => {
     const fetchDamageTypes = async () => {
       try {
-        const res = await api.get("/damages");
+        const res = await api.get("/get_damages");
         setDamageTypes(res.data); // ожидается, что res.data — массив объектов с полями id и damage_type
       } catch (error) {
         console.error("Ошибка при загрузке видов повреждений:", error);

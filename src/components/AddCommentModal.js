@@ -17,7 +17,7 @@ const AddCommentModal = ({
   // Функция для получения id лаборатории по имени
   const getLabId = useCallback(async () => {
     try {
-      const { data } = await api.get(`/lab_id/${labName}`);
+      const { data } = await api.get(`/get_lab_id/${labName}`);
       setLabId(data); // Устанавливаем id лаборатории
     } catch (error) {
       message.error("Не удалось получить id лаборатории");

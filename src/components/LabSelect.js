@@ -10,7 +10,7 @@ const LabSelect = ({ onChange }) => {
     const fetchLabs = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/labs"); // Исправленный вызов API
+        const response = await api.get("/get_labs"); // Исправленный вызов API
         setLabs(response.data.map(lab => ({ value: lab.id, label: lab.lab_name })));
       } catch (error) {
         notification.error({
