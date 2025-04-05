@@ -151,52 +151,53 @@ const VerificationPage = () => {
 
   // Кнопка загрузки данных с плавной прокруткой к первой неподтвержденной записи
   const handleLoadData = async () => {
-  // Проверяем, что все строки подтверждены
-  const unconfirmedRow = data.find((row) => row.status !== true);
-  if (unconfirmedRow) {
-    notification.warning({
-      message: "Заполните все записи!",
-      description: "Пожалуйста, подтвердите все строки, прежде чем загружать данные.",
-    });
-    const rowElement = document.getElementById(unconfirmedRow.rotated_path);
-    if (rowElement) {
-      smoothScrollTo(rowElement);
+    // Проверяем, что все строки подтверждены
+    const unconfirmedRow = data.find((row) => row.status !== true);
+    if (unconfirmedRow) {
+      notification.warning({
+        message: "Заполните все записи!",
+        description: "Пожалуйста, подтвердите все строки, прежде чем загружать данные.",
+      });
+      const rowElement = document.getElementById(unconfirmedRow.rotated_path);
+      if (rowElement) {
+        smoothScrollTo(rowElement);
+      }
+      return;
     }
-    return;
-  }
 
-  // Формируем payload для запроса вставки данных
-  console.log("data:")
-  console.log(data)
-  console.log("result")
-  console.log(result)
-  const payload = {
-    id_party: party_id, // идентификатор для kern_party
-    kern_party_statements: result?.codes || [], // список кодов для kern_party_statements; может быть пустым
-    insert_date: result?.insert_date, // общий insert_date для всех записей
-    validation_date: new Date().toISOString().slice(0, 19).replace("T", " "),
-    lab_id: lab,
-    input_type: result?.input_type,
-    rows: data.map((item) => ({
-      damage_id: damageTypes.find(d => d.damage_type === item.damage_type)?.id || null,
-      confidence_model: item.model_confidence,   
-      code_model: item.predicted_text,             
-      code_algorithm: item.algorithm_text, 
-      kern_code: item.kern_code, //здесь все хорошо
-    })),
+    // Формируем payload для запроса вставки данных
+    console.log("data:")
+    console.log(data)
+    console.log("result")
+    console.log(result)
+    const payload = {
+      id_party: party_id, // идентификатор для kern_party
+      kern_party_statements: result?.codes || [], // список кодов для kern_party_statements; может быть пустым
+      insert_date: result?.insert_date, // общий insert_date для всех записей
+      validation_date: new Date().toISOString().slice(0, 19).replace("T", " "),
+      download_date: result?.download_date,
+      lab_id: lab,
+      input_type: result?.input_type,
+      rows: data.map((item) => ({
+        damage_id: damageTypes.find(d => d.damage_type === item.damage_type)?.id || null,
+        confidence_model: item.model_confidence,   
+        code_model: item.predicted_text,             
+        code_algorithm: item.algorithm_text, 
+        kern_code: item.kern_code, //здесь все хорошо
+      })),
+    };
+    console.log("payload")
+    console.log(payload)
+
+    try {
+      const response = await api.post("/insert_data", payload);
+      console.log(response)
+      message.success("Данные успешно загружены");
+      navigate('/accounting');
+    } catch (error) {
+      message.error("Ошибка загрузки данных");
+    }
   };
-  console.log("payload")
-  console.log(payload)
-
-  try {
-    const response = await api.post("/insert_data", payload);
-    console.log(response)
-    message.success("Данные успешно загружены");
-    //navigate('/accounting');
-  } catch (error) {
-    message.error("Ошибка загрузки данных");
-  }
-};
 
   // Подтверждение записи
   const handleConfirm = (index) => {
