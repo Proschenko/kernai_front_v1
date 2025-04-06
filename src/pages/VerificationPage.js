@@ -336,10 +336,6 @@ const VerificationPage = () => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <h1>Верификация</h1>
-      </div>
-
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div style={{ marginBottom: "16px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
           <Button type="primary" onClick={handleLoadData}>
