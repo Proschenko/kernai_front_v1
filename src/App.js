@@ -15,7 +15,7 @@ const { Header, Content } = Layout;
 const getPageTitle = (pathname) => {
   switch (pathname) {
     case "/":
-      return "Главная";
+      return "Распознавание образцов керна";
     case "/verification":
       return "Верификация";
     case "/accounting":
