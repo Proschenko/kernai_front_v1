@@ -2,7 +2,7 @@ import axios from "axios";
 import UserService from "../auth/UserService";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000", // Бэкенд URL
+  baseURL: process.env.REACT_APP_API_URL, // Бэкенд URL
   timeout: 10000, // 10 секунд
 });
 

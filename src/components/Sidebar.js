@@ -10,14 +10,22 @@ const { Sider } = Layout;
 const { Text } = Typography;
 
 
+function capitalizeWords(str){
+  return str
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase()+word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 
 const Sidebar = () => {
   const {mail,username, roles} =  useAuth();
 
-  const role = roles.length > 0 ? roles[0] : "Неизвестная роль";
   const location = useLocation(); // Получаем текущий путь
   const isAdmin = roles?.includes("admin");
-
+  const isUser = roles?.includes("user");
+  const role  = isAdmin ? "Администратор" : isUser ? "Пользователь" : "Неизвестная роль";
+  const username_correct = capitalizeWords(username)
 
   const menuItems = [
     isAdmin && { key: "/admin_panel", icon: <CrownOutlined />, label: "Админ-панель", path: "/admin_panel" },
@@ -36,13 +44,17 @@ const Sidebar = () => {
       <div style={{ padding: "16px", textAlign: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.2)" }}>
         <Avatar size={64} icon={<UserOutlined />} />
         <div style={{ marginTop: 8 }}>
-          <Text style={{ color: "white", fontWeight: "bold" }}>{username || "Неизвестный пользователь"}</Text>
+          <Text style={{ color: "white", fontWeight: "bold" }}>{username_correct || "Неизвестный пользователь"}</Text>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <Text style={{ fontSize:"11px",color: "rgba(255, 255, 255, 0.7)" }}>{mail || "Email не указан"}</Text>
+        </div>
+       
+        <div style={{ marginTop: 8 }}>
+          <Text style={{ color: "rgba(255, 255, 255, 0.7)" }}>Роль:</Text>
         </div>
         <div>
-          <Text style={{ color: "rgba(255, 255, 255, 0.7)" }}>{mail || "Email не указан"}</Text>
-        </div>
-        <div>
-          <Text style={{ color: "rgba(255, 255, 255, 0.7)" }}>Роль: {role}</Text>
+          <Text style={{ color: "rgba(255, 255, 255, 0.7)" }}>{role}</Text>
         </div>
       </div>
       <Menu

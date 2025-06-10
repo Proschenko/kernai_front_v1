@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Layout } from "antd";
+import { Layout, Tag } from "antd";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
 import VerificationPage from "./pages/VerificationPage";
@@ -21,7 +21,7 @@ const getPageTitle = (pathname) => {
     case "/accounting":
       return "Учет образцов керна";
     case "/guide":
-      return "Руководство";
+      return "Справочная информация";
     case "/admin_panel":
       return "Админ-панель";
     default:
@@ -64,7 +64,9 @@ const App = () => {
   }
 
   const isAdmin = roles?.includes("admin");
-
+  const isUser = roles?.includes("user");
+  const haveAccess = isAdmin || isUser;
+  if (haveAccess){
   return (
     <Router>
       <Layout style={{ minHeight: "100vh" }}>
@@ -75,17 +77,26 @@ const App = () => {
             <Routes>
               {/* Скрытие маршрута для пользователей без роли admin1 */}
               {isAdmin && <Route path="/admin_panel" element={<AdminPage />} />}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/verification" element={<VerificationPage />} />
-              <Route path="/accounting" element={<AccountingPage />} />
-              <Route path="/guide" element={<GuidePage />} />
-              <Route path="*" element={<Navigate to="/" />} />
+              {haveAccess && <Route path="/" element={<HomePage />} /> }
+              {haveAccess && <Route path="/verification" element={<VerificationPage />} />}
+              {haveAccess && <Route path="/accounting" element={<AccountingPage />} />}
+              {haveAccess && <Route path="/guide" element={<GuidePage />} />}
+              {haveAccess && <Route path="*" element={<Navigate to="/" />} />}
             </Routes>
           </Content>
         </Layout>
       </Layout>
     </Router>
   );
+  }else
+  {
+    return (
+      <div style={{display: "flex", alignItems: "center", justifyContent: "center", height: "100vh"}}>
+        <Tag style ={{fontSize: "50px", padding: "16", lineHeight: "100px"}}color= "red">{"Нет доступа. Запросите доступ."}</Tag>
+        
+      </div>
+    )
+  }
 };
 
 export default App;

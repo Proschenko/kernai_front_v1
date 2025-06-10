@@ -20,7 +20,7 @@ const VerificationPage = () => {
   const {party_id, lab} = state || {};
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalImages, setModalImages] = useState({ rotated: "", cropped: "" });
+  const [modalImages, setModalImages] = useState({ rotated: "", cropped: "",  process_image: "", recognition_text_image: "" });
   const [data, setData] = useState([]);
   const [imageCache, setImageCache] = useState({});
   const [disablePopconfirm, setDisablePopconfirm] = useState(false);
@@ -81,6 +81,29 @@ const VerificationPage = () => {
     }
   }, []);
 
+  //Функция получения путей до иных изображений полученных не из ответа API
+  function get_all_image_from_path(path_inner){
+    function goUpDir(path,levels=1){
+        const segments = path.split(/[\\/]/).filter(Boolean)
+        if (levels >= segments.lenght) return '';
+        return segments.slice(0,-levels).join('/');
+    }
+    const main_dir = goUpDir(path_inner,2);
+    
+    const id_num_kern = path_inner.split('/').pop().split('_').pop().split('.')[0]
+    
+    function getAllImages(main_dir,id_num_img){
+        const step5_rotate = main_dir+"/step5_rotate_image/process_image_"+id_num_img+".png";
+        const step6_recog_text = main_dir+"/step6_recognize_text/one_image/recognition_text_image_"+id_num_img+".png";
+        return {step5_rotate, step6_recog_text}
+    }
+    const res=getAllImages(main_dir,id_num_kern)
+    return res
+}
+
+
+
+
   // Предварительная загрузка изображений
   const prefetchImages = useCallback(
     async (processingResults) => {
@@ -88,6 +111,16 @@ const VerificationPage = () => {
       for (const item of processingResults) {
         newCache[item.rotated_path] = await fetchImage(item.rotated_path);
         newCache[item.cropped_path] = await fetchImage(item.cropped_path);
+        
+        const result_tmp = get_all_image_from_path(item.cropped_path)
+        const step5_rotate_path =  result_tmp['step5_rotate']
+        const step6_recog_text_path = result_tmp['step6_recog_text']
+        
+        console.log("Loading step5_rotate_path:", step5_rotate_path);
+        console.log("Loading step6_recog_text_path:", step6_recog_text_path);
+
+        newCache[step5_rotate_path] = await fetchImage(step5_rotate_path);
+        newCache[step6_recog_text_path] = await fetchImage(step6_recog_text_path);
       }
       setImageCache(newCache);
       sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(processingResults.map((i) => i.rotated_path)));
@@ -124,10 +157,17 @@ const VerificationPage = () => {
   }, [data]);
 
   // Открытие модального окна с изображениями
-  const showImageModal = (rotated, cropped) => {
+  const showImageModal = (rotated, cropped,process_image,recognition_text_image) => {
+    console.log("rotated:", rotated);
+    console.log("cropped:", cropped);
+    console.log("process_image:", process_image);
+    console.log("recognition_text_image:", recognition_text_image);
+
     setModalImages({
-      rotated: imageCache[rotated] || placeholderImage,
-      cropped: imageCache[cropped] || placeholderImage,
+      rotated: { url: imageCache[rotated] || placeholderImage, caption: "Повернутое (конец) изображение" },
+      cropped: { url: imageCache[cropped] || placeholderImage, caption: "Исходное изображение" },
+      process_image: { url: imageCache[process_image] || placeholderImage, caption: "Поворот №1" },
+      recognition_text_image: { url: imageCache[recognition_text_image] || placeholderImage, caption: "Распознанный текст" },
     });
     setModalVisible(true);
   };
@@ -244,7 +284,13 @@ const VerificationPage = () => {
           style={{ cursor: "pointer" }}
           fallback={placeholderImage}
           preview={false}
-          onClick={() => showImageModal(record.rotated_path, record.cropped_path)}
+          onClick={() => {
+            console.log(record);
+            const result_tmp = get_all_image_from_path(record.cropped_path);
+            const step5_rotate_path = result_tmp['step5_rotate'];
+            const step6_recog_text_path = result_tmp['step6_recog_text'];
+            showImageModal(record.rotated_path, record.cropped_path, step5_rotate_path, step6_recog_text_path);
+          }}
         />
       ),
     },
@@ -362,12 +408,32 @@ const VerificationPage = () => {
 
       <Table columns={columns} dataSource={data} rowKey="rotated_path" pagination={false} />
 
-      <Modal open={modalVisible} footer={null} onCancel={() => setModalVisible(false)} width={800}>
-        <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
-          <Image src={modalImages.rotated} fallback={placeholderImage} width={350} />
-          <Image src={modalImages.cropped} fallback={placeholderImage} width={350} />
-        </div>
-      </Modal>
+      <Modal open={modalVisible} footer={null} onCancel={() => setModalVisible(false)}>
+  <div style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: "16px",
+    flexWrap: "wrap",
+    padding: "16px"
+  }}>
+    {Object.entries(modalImages).map(([key, image]) => (
+      <div key={key} style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        margin: "8px"
+      }}>
+        <Image
+          src={image.url}
+          fallback={placeholderImage}
+          width={350}
+          style={{ maxWidth: "100%" }}
+        />
+        <div style={{ textAlign: "center", marginTop: "8px" }}>{image.caption}</div>
+      </div>
+    ))}
+  </div>
+</Modal>
     </div>
   );
 };
